@@ -1,5 +1,6 @@
+const BACKEND_URL = "https://mybekkend-side-1.onrender.com";
+
 function openPDF(filename) {
-    const backendURL = "https://mybekkend-side-1.onrender.com";
-    const url = `${backendURL}/pdfs/${filename}`;
-    window.open(url, "_blank");
+    window.open(`${BACKEND_URL}/pdfs/${filename}`, "_blank");
 }
+

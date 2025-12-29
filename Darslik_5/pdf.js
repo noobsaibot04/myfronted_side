@@ -1,5 +1,10 @@
+
+// Backend manzili (Render)
+const BACKEND_URL = "https://mybekkend-side-1.onrender.com";
+
+// PDF ochish funksiyasi
 function openPDF(filename) {
-    const backendURL = "https://mybekkend-side-1.onrender.com";
-    const url = `${backendURL}/pdfs/${filename}`;
-    window.open(url, "_blank");
+    const pdfUrl = `${BACKEND_URL}/pdfs/${filename}`;
+    window.open(pdfUrl, "_blank");
 }
+
