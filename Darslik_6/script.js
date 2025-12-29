@@ -1,4 +1,5 @@
-const pdfUrl = 'http://127.0.0.1:5001/pdfs/6-sinf.pdf';
+const pdfUrl = 'https://mybekkend-side-1.onrender.com/pdfs/6-sinf.pdf';
+
 
 const MUNDARIJA_BETLARI = 0;
 
