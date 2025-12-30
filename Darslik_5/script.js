@@ -13,7 +13,7 @@ const overlay = document.getElementById('overlay');
 
 
 const mavzular = [
-  { id: 1, mavzuRaqam: "1.1", nomi: "Gul", bet: 9, tugashBet:12 },
+  { id: 1, mavzuRaqam: "1.1", nomi: "Gul", bet: 19, tugashBet:23 },
   { id: 2, mavzuRaqam: "1.2", nomi: "Gulli o‘simliklarning ko‘payishi", bet: 13, tugashBet:19 },
   { id: 3, mavzuRaqam: "1.3", nomi: "Urug‘larning unib chiqishi", bet: 20, tugashBet:23},
   { id: 4, mavzuRaqam: "2.1", nomi: "Yashash muhitiga moslanish", bet: 26 , tugashBet:33},
