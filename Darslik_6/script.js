@@ -1,54 +1,57 @@
-/*************************************************
- * 6-sinf PDF sozlamalari
- *************************************************/
+/***********************
+ * ASOSIY SOZLAMALAR
+ ***********************/
 const pdfUrl = 'https://mybekkend-side-1.onrender.com/pdfs/6-sinf.pdf';
-
-// Agar PDF boshida muqova / kirish sahifalari bo‘lsa
 const MUNDARIJA_BETLARI = 0;
 
-// pdf.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-/*************************************************
- * DOM elementlar
- *************************************************/
 const pdfWrapper = document.getElementById('pdfWrapper');
 const topicsList = document.getElementById('topicsList');
 const menuToggle = document.getElementById('menuToggle');
 const topicsSidebar = document.getElementById('topicsSidebar');
 const overlay = document.getElementById('overlay');
 
-/*************************************************
- * PDF yuklash
- *************************************************/
-let pdfDoc = null;
-let renderedPages = new Set();
 
+/***********************
+ * MENU BOSHQARUVI
+ ***********************/
+function openMenu() {
+  topicsSidebar.classList.add('open');
+  overlay.classList.add('show');
+}
+
+function closeMenu() {
+  topicsSidebar.classList.remove('open');
+  overlay.classList.remove('show');
+}
+
+menuToggle.onclick = () => {
+  topicsSidebar.classList.contains('open') ? closeMenu() : openMenu();
+};
+
+overlay.onclick = closeMenu;
+
+
+/***********************
+ * PDF YUKLASH
+ ***********************/
 async function loadPDF() {
-  try {
-    pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+  const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
 
-    // Dastlab faqat 5 bet yuklaymiz (tez ochilishi uchun)
-    const firstLoad = Math.min(5, pdfDoc.numPages);
-    for (let i = 1; i <= firstLoad; i++) {
-      await renderPage(i);
-    }
-
-  } catch (err) {
-    console.error("PDF yuklashda xatolik:", err);
+  for (let i = 1; i <= pdf.numPages; i++) {
+    await renderPage(pdf, i);
   }
 }
 
-async function renderPage(pageNumber) {
-  if (renderedPages.has(pageNumber)) return;
-
-  const page = await pdfDoc.getPage(pageNumber);
+async function renderPage(pdf, pageNumber) {
+  const page = await pdf.getPage(pageNumber);
   const baseViewport = page.getViewport({ scale: 1 });
 
   const scale =
     window.innerWidth < 768
-      ? (window.innerWidth - 32) / baseViewport.width
+      ? (window.innerWidth - 30) / baseViewport.width
       : 1.4;
 
   const viewport = page.getViewport({ scale });
@@ -63,26 +66,27 @@ async function renderPage(pageNumber) {
 
   const ctx = canvas.getContext('2d');
   await page.render({ canvasContext: ctx, viewport }).promise;
-
-  renderedPages.add(pageNumber);
 }
 
-/*************************************************
- * Mundarija (6-sinf)
- *************************************************/
+loadPDF();
+
+
+/***********************
+ * MUNDARIJA (BOBLAR)
+ ***********************/
 const mavzular = [
-  { nomi: "TABIATNI O'RGANISH", bet: 6 },
-  { nomi: "MODDA VA UNING XOSSALARI", bet: 15 },
-  { nomi: "TIRIK ORGANIZMLARNING XILMAXILLIGI", bet: 37 },
-  { nomi: "TIRIK ORGANIZMLARNING TUZILISHI", bet: 47 },
-  { nomi: "EKOLOGIYA VA BARQAROR RIVOJLANISH", bet: 67 },
-  { nomi: "QUYOSH SISTEMASI VA KOINOT", bet: 80 },
-  { nomi: "GEOGRAFIK XARITALAR", bet: 91 },
-  { nomi: "YER QOBIQLARI", bet: 104 },
-  { nomi: "MENING VATANIM", bet: 121 },
-  { nomi: "HARAKAT VA KUCH", bet: 132 },
-  { nomi: "ENERGIYA", bet: 157 },
-  { nomi: "ELEKTR VA MAGNIT HODISALAR", bet: 176 },
+  { nomi: "TABIATNI O'RGANISH", bet: 6, tugashBet: 14 },
+  { nomi: "MODDA VA UNING XOSSALARI", bet: 15, tugashBet: 36 },
+  { nomi: "TIRIK ORGANIZMLARNING XILMAXILLIGI", bet: 37, tugashBet: 46 },
+  { nomi: "TIRIK ORGANIZMLARNING TUZILISHI", bet: 47, tugashBet: 66 },
+  { nomi: "EKOLOGIYA VA BARQAROR RIVOJLANISH", bet: 67, tugashBet: 79 },
+  { nomi: "QUYOSH SISTEMASI VA KOINOT", bet: 80, tugashBet: 90 },
+  { nomi: "GEOGRAFIK XARITALAR", bet: 91, tugashBet: 103 },
+  { nomi: "YER QOBIQLARI", bet: 104, tugashBet: 120 },
+  { nomi: "MENING VATANIM", bet: 121, tugashBet: 131 },
+  { nomi: "HARAKAT VA KUCH", bet: 132, tugashBet: 156 },
+  { nomi: "ENERGIYA", bet: 157, tugashBet: 175 },
+  { nomi: "ELEKTR VA MAGNIT HODISALAR", bet: 176, tugashBet: 190 }
 ];
 
 mavzular.forEach((mavzu, index) => {
@@ -90,18 +94,24 @@ mavzular.forEach((mavzu, index) => {
   div.className = 'topic';
   div.textContent = `${index + 1}. ${mavzu.nomi}`;
 
-  div.onclick = async () => {
-    const pageNum = mavzu.bet + MUNDARIJA_BETLARI;
+  div.onclick = () => {
+    document.querySelectorAll('.pdf-page').forEach(page => {
+      const p = parseInt(page.dataset.page);
+      if (
+        p >= mavzu.bet + MUNDARIJA_BETLARI &&
+        p <= mavzu.tugashBet + MUNDARIJA_BETLARI
+      ) {
+        page.style.display = 'block';
+      } else {
+        page.style.display = 'none';
+      }
+    });
 
-    // Agar sahifa hali yuklanmagan bo‘lsa — yuklaymiz
-    await renderPage(pageNum);
-
-    const target = document.querySelector(
-      `.pdf-page[data-page='${pageNum}']`
+    const firstPage = document.querySelector(
+      `.pdf-page[data-page='${mavzu.bet + MUNDARIJA_BETLARI}']`
     );
-
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth' });
+    if (firstPage) {
+      firstPage.scrollIntoView({ behavior: 'smooth' });
     }
 
     if (window.innerWidth < 768) closeMenu();
@@ -109,24 +119,3 @@ mavzular.forEach((mavzu, index) => {
 
   topicsList.appendChild(div);
 });
-
-/*************************************************
- * Mobil menyu
- *************************************************/
-function openMenu() {
-  topicsSidebar.classList.add('open');
-  overlay.classList.add('show');
-}
-
-function closeMenu() {
-  topicsSidebar.classList.remove('open');
-  overlay.classList.remove('show');
-}
-
-menuToggle?.addEventListener('click', openMenu);
-overlay?.addEventListener('click', closeMenu);
-
-/*************************************************
- * Ishga tushirish
- *************************************************/
-loadPDF();
