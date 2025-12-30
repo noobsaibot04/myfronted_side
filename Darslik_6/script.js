@@ -1,82 +1,132 @@
+/*************************************************
+ * 6-sinf PDF sozlamalari
+ *************************************************/
 const pdfUrl = 'https://mybekkend-side-1.onrender.com/pdfs/6-sinf.pdf';
 
-
+// Agar PDF boshida muqova / kirish sahifalari bo‘lsa
 const MUNDARIJA_BETLARI = 0;
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+// pdf.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+/*************************************************
+ * DOM elementlar
+ *************************************************/
 const pdfWrapper = document.getElementById('pdfWrapper');
 const topicsList = document.getElementById('topicsList');
+const menuToggle = document.getElementById('menuToggle');
+const topicsSidebar = document.getElementById('topicsSidebar');
+const overlay = document.getElementById('overlay');
 
-// Sahifalarni ketma-ket yuklash funksiyasi
+/*************************************************
+ * PDF yuklash
+ *************************************************/
+let pdfDoc = null;
+let renderedPages = new Set();
+
 async function loadPDF() {
-    try {
-        const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
-        
-        // Sahifalarni tartib bilan yuklaymiz (for loop + await)
-        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-            await renderPageSequentially(pdf, pageNum);
-        }
-    } catch (error) {
-        console.error("PDF yuklashda xatolik:", error);
+  try {
+    pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+
+    // Dastlab faqat 5 bet yuklaymiz (tez ochilishi uchun)
+    const firstLoad = Math.min(5, pdfDoc.numPages);
+    for (let i = 1; i <= firstLoad; i++) {
+      await renderPage(i);
     }
+
+  } catch (err) {
+    console.error("PDF yuklashda xatolik:", err);
+  }
 }
 
-async function renderPageSequentially(pdf, pageNumber) {
-    const page = await pdf.getPage(pageNumber);
-    const viewportBase = page.getViewport({ scale: 1 });
-    
-    // Scale sozlamalari
-    let scale = (window.innerWidth < 768) ? (window.innerWidth - 40) / viewportBase.width : 1.4;
-    const viewport = page.getViewport({ scale });
-    
-    const canvas = document.createElement('canvas');
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    canvas.className = 'pdf-page';
-    canvas.dataset.page = pageNumber;
-    
-    pdfWrapper.appendChild(canvas);
-    
-    // Observer mavjud bo'lsa ulash
-    if (window.topicObserver) window.topicObserver.observe(canvas);
-    
-    const context = canvas.getContext('2d');
-    await page.render({ canvasContext: context, viewport }).promise;
+async function renderPage(pageNumber) {
+  if (renderedPages.has(pageNumber)) return;
+
+  const page = await pdfDoc.getPage(pageNumber);
+  const baseViewport = page.getViewport({ scale: 1 });
+
+  const scale =
+    window.innerWidth < 768
+      ? (window.innerWidth - 32) / baseViewport.width
+      : 1.4;
+
+  const viewport = page.getViewport({ scale });
+
+  const canvas = document.createElement('canvas');
+  canvas.className = 'pdf-page';
+  canvas.dataset.page = pageNumber;
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+
+  pdfWrapper.appendChild(canvas);
+
+  const ctx = canvas.getContext('2d');
+  await page.render({ canvasContext: ctx, viewport }).promise;
+
+  renderedPages.add(pageNumber);
 }
 
-// PDF-ni yuklashni boshlash
-loadPDF();
-
-// Mundarijani yaratish (o'zgarishsiz qoladi)
+/*************************************************
+ * Mundarija (6-sinf)
+ *************************************************/
 const mavzular = [
-  { id: 1, mavzuRaqam: "1", nomi: "TABIATNI O'RGANISH", bet: 6, tugashBet:14 },
-  { id: 2, mavzuRaqam: "2", nomi: "MODDA VA UNING XOSSALARI", bet: 15, tugashBet:36 },
-  { id: 3, mavzuRaqam: "3", nomi: "TIRIK ORGANIZMLARNING XILMAXILLIGI", bet: 37, tugashBet:46 },
-  { id: 4, mavzuRaqam: "4", nomi: "TIRIK ORGANIZMLARNING TUZILISHI", bet: 47 , tugashBet:66},
-  { id: 5, mavzuRaqam: "5", nomi: "EKOLOGIYA VA BARQAROR RIVOJLANISH", bet: 67, tugashBet:79 },
-  { id: 6, mavzuRaqam: "6", nomi: "QUYOSH SISTEMASI VA KOINOT", bet: 80, tugashBet:90 },
-  { id: 7, mavzuRaqam: "7", nomi: "GEOGRAFIK XARITALAR", bet: 91 , tugashBet:103},
-  { id: 8, mavzuRaqam: "8", nomi: "YER QOBIQLARI", bet: 104 , tugashBet:120 },
-  { id: 9, mavzuRaqam: "9", nomi: "MENING VATANIM", bet: 121, tugashBet:131 },
-  { id: 10, mavzuRaqam: "10", nomi: "HARAKAT VA KUCH", bet: 132 , tugashBet:156},
-  { id: 11, mavzuRaqam: "11", nomi: "ENERGIYA", bet: 157, tugashBet:175 },
-  { id: 12, mavzuRaqam: "12", nomi: "ELEKTR VA MAGNIT HODISALAR", bet: 176, tugashBet:190 },
+  { nomi: "TABIATNI O'RGANISH", bet: 6 },
+  { nomi: "MODDA VA UNING XOSSALARI", bet: 15 },
+  { nomi: "TIRIK ORGANIZMLARNING XILMAXILLIGI", bet: 37 },
+  { nomi: "TIRIK ORGANIZMLARNING TUZILISHI", bet: 47 },
+  { nomi: "EKOLOGIYA VA BARQAROR RIVOJLANISH", bet: 67 },
+  { nomi: "QUYOSH SISTEMASI VA KOINOT", bet: 80 },
+  { nomi: "GEOGRAFIK XARITALAR", bet: 91 },
+  { nomi: "YER QOBIQLARI", bet: 104 },
+  { nomi: "MENING VATANIM", bet: 121 },
+  { nomi: "HARAKAT VA KUCH", bet: 132 },
+  { nomi: "ENERGIYA", bet: 157 },
+  { nomi: "ELEKTR VA MAGNIT HODISALAR", bet: 176 },
 ];
 
-mavzular.forEach(mavzu => {
+mavzular.forEach((mavzu, index) => {
   const div = document.createElement('div');
   div.className = 'topic';
-  div.textContent = `${mavzu.mavzuRaqam ? mavzu.mavzuRaqam + '.' : ''} ${mavzu.nomi}`;
-  div.onclick = () => {
-    const target = document.querySelector(`.pdf-page[data-page='${mavzu.bet + MUNDARIJA_BETLARI}']`);
+  div.textContent = `${index + 1}. ${mavzu.nomi}`;
+
+  div.onclick = async () => {
+    const pageNum = mavzu.bet + MUNDARIJA_BETLARI;
+
+    // Agar sahifa hali yuklanmagan bo‘lsa — yuklaymiz
+    await renderPage(pageNum);
+
+    const target = document.querySelector(
+      `.pdf-page[data-page='${pageNum}']`
+    );
+
     if (target) {
-        target.scrollIntoView({ behavior: 'smooth' });
-    } else {
-        // Agar sahifa hali render bo'lmagan bo'lsa (katta PDF-lar uchun)
-        console.log("Sahifa hali yuklanmagan");
+      target.scrollIntoView({ behavior: 'smooth' });
     }
+
     if (window.innerWidth < 768) closeMenu();
   };
+
   topicsList.appendChild(div);
 });
+
+/*************************************************
+ * Mobil menyu
+ *************************************************/
+function openMenu() {
+  topicsSidebar.classList.add('open');
+  overlay.classList.add('show');
+}
+
+function closeMenu() {
+  topicsSidebar.classList.remove('open');
+  overlay.classList.remove('show');
+}
+
+menuToggle?.addEventListener('click', openMenu);
+overlay?.addEventListener('click', closeMenu);
+
+/*************************************************
+ * Ishga tushirish
+ *************************************************/
+loadPDF();
