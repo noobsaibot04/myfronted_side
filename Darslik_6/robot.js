@@ -1,60 +1,84 @@
-/*************************************************
- * 6-SINF ROBOT YORDAMCHI (SODDA & ISHONCHLI)
- *************************************************/
+/* =========================================
+   6-SINF ROBOT — FAQAT KUZATUVCHI
+   Mundarija, dizayn, bob ochilishiga TEGMAYDI
+========================================= */
 
-let lastShownTopicId = null;
+/* ---------- 1. BOBLAR RO‘YXATI ---------- */
+const BOBLAR = [
+  { id: 1, nomi: "1-bob", start: 6 },
+  { id: 2, nomi: "2-bob", start: 15 },
+  { id: 3, nomi: "3-bob", start: 37 },
+  { id: 4, nomi: "4-bob", start: 47 },
+  { id: 5, nomi: "5-bob", start: 67 },
+  { id: 6, nomi: "6-bob", start: 80 },
+  { id: 7, nomi: "7-bob", start: 92 },
+  { id: 8, nomi: "8-bob", start: 104 },
+  { id: 9, nomi: "9-bob", start: 121 },
+  { id: 10, nomi: "10-bob", start: 132 },
+  { id: 11, nomi: "11-bob", start: 157 },
+  { id: 12, nomi: "12-bob", start: 176 }
+];
 
-// Robot elementlari
-const robotMsg = document.getElementById("robotMsg");
-const mainText = document.getElementById("mainText");
-const welcomeZone = document.getElementById("welcomeZone");
+/* ---------- 2. HOLAT O‘ZGARUVCHILAR ---------- */
+let lastBobId = null;
+let hideTimer = null;
 
-// -----------------------------
-// PDF SCROLLNI KUZATISH
-// -----------------------------
-document.getElementById("pdfWrapper").addEventListener("scroll", () => {
-  if (typeof mavzular === "undefined") return;
-
+/* ---------- 3. BETNI ANIQLASH ---------- */
+function getCurrentPage() {
   const pages = document.querySelectorAll(".pdf-page");
-  let currentPage = null;
+  let current = null;
 
-  pages.forEach(page => {
-    const rect = page.getBoundingClientRect();
-    if (
-      rect.top < window.innerHeight / 2 &&
-      rect.bottom > window.innerHeight / 2
-    ) {
-      currentPage = parseInt(page.dataset.page);
+  pages.forEach(p => {
+    const r = p.getBoundingClientRect();
+    if (r.top < window.innerHeight / 2 && r.bottom > window.innerHeight / 2) {
+      current = Number(p.dataset.page);
     }
   });
 
-  if (!currentPage) return;
+  return current;
+}
 
-  // 🔍 Mavzu boshlanishini tekshiramiz
-  const topic = mavzular.find(m => m.bet === currentPage);
+/* ---------- 4. ROBOT XABARI ---------- */
+function showRobotMessage(text) {
+  const robotMsg = document.getElementById("robotMsg");
+  const mainText = document.getElementById("mainText");
 
-  if (topic && topic.id !== lastShownTopicId) {
-    lastShownTopicId = topic.id;
-    showNewTopic(topic.nomi);
-  }
-});
+  if (!robotMsg || !mainText) return;
 
-// -----------------------------
-// ROBOT XABARI
-// -----------------------------
-function showNewTopic(topicName) {
   robotMsg.style.display = "block";
-  welcomeZone.style.display = "none";
-  mainText.style.display = "block";
+  mainText.innerHTML = text;
 
-  mainText.innerHTML = `
-    <div style="color:#00f2ff;font-size:15px;">📘 Yangi mavzu boshlandi</div>
-    <b style="font-size:16px;">${topicName}</b>
-    <div style="font-size:14px;margin-top:4px;">Davom etamiz! 🚀</div>
-  `;
-
-  // 6 soniyadan keyin yopiladi
-  setTimeout(() => {
+  if (hideTimer) clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => {
     robotMsg.style.display = "none";
   }, 6000);
 }
+
+/* ---------- 5. ASOSIY KUZATUV ---------- */
+const pdfWrapper = document.getElementById("pdfWrapper");
+
+if (pdfWrapper) {
+  pdfWrapper.addEventListener("scroll", () => {
+    const page = getCurrentPage();
+    if (!page) return;
+
+    const bob = BOBLAR.find(b => b.start === page);
+    if (!bob) return;
+
+    if (lastBobId !== bob.id) {
+      lastBobId = bob.id;
+      showRobotMessage(
+        `🎉 <b>${bob.id}-bob boshlandi!</b><br>
+         Omad tilayman, davom eting 🚀`
+      );
+    }
+  });
+}
+
+/* ---------- 6. XAVFSIZLIK ---------- */
+// Bu kod hech qachon:
+// - click
+// - toggle
+// - classList
+// - display (mundarija)
+// ga tegmaydi
